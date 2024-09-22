@@ -10,14 +10,14 @@ class Employee(Base):
     __tablename__ = 'employees'
 
     id = sa.Column(sa.Integer, primary_key=True)
-    name = sa.Column(sa.String)
+    name = sa.Column(sa.String, unique=True)
 
 class WorkingHours(Base):
     __tablename__ = 'working_hours'
 
     id = sa.Column(sa.Integer, primary_key=True)
-    start_hour = sa.Column(sa.Time)
-    end_hour = sa.Column(sa.Time)
+    start_hour = sa.Column(sa.String)
+    end_hour = sa.Column(sa.String)
     working_hours = sa.Column(sa.Float)
 
 class WeekSchedule(Base):
@@ -29,4 +29,3 @@ class WeekSchedule(Base):
     employee = sa.Column(sa.Integer, sa.ForeignKey('employees.id'), nullable=False, default=1)
     working_hours = sa.Column(sa.Integer, sa.ForeignKey('working_hours.id'), nullable=False)
 
-Base.metadata.create_all(engine)
