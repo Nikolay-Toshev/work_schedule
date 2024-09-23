@@ -19,6 +19,8 @@ class WorkingHours(Base):
     start_hour = sa.Column(sa.String)
     end_hour = sa.Column(sa.String)
     working_hours = sa.Column(sa.Float)
+    is_sick = sa.Column(sa.Boolean, nullable=True, default=False)
+    is_on_vacation = sa.Column(sa.Boolean, nullable=True, default=False)
 
 class WeekSchedule(Base):
     __tablename__ = 'week_schedule'
