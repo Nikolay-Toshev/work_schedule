@@ -10,7 +10,7 @@ def refresh_data(text):
 class App:
     def __init__(self, master):
         self.master = master
-        self.master.geometry("1000x650")
+        self.master.geometry("1000x900")
         self.master.resizable(True, True)
         self.master.title("My GUI")
         self.main_page()
