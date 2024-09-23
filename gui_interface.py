@@ -43,11 +43,6 @@ class App:
     def add_remove_employee(self):
         self.winfo_children_destroy()
 
-        self.master.columnconfigure(0, weight=1)
-        self.master.columnconfigure(1, weight=3)
-        self.master.columnconfigure(2, weight=2)
-        self.master.columnconfigure(3, weight=1)
-
         add_employee_label = Label(self.master, text='Добави нов работник', font=('Arial', 18))
         add_employee_label.grid(row=0, column=0, sticky="E", padx=15, pady=30)
 
