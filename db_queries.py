@@ -144,9 +144,10 @@ def list_working_hours():
     for work_hour in working_hours:
         if work_hour.is_on_vacation == 1 or work_hour.is_sick == 1 or work_hour.is_resting == 1:
             all_working_hours.append(
-                f'{"  Отпуск" if work_hour.is_on_vacation == 1 else ""}'
-                f'{"  Болничен" if work_hour.is_sick == 1 else ""}'
-                f'{"  Почива" if work_hour.is_resting == 1 else ""}'
+                f'{"  Отпуск," if work_hour.is_on_vacation == 1 else ""}'
+                f'{"  Болничен," if work_hour.is_sick == 1 else ""}'
+                f'{"  Почива," if work_hour.is_resting == 1 else ""}'
+                f' Отработени часове: {work_hour.working_hours}'
             )
 
         else:
