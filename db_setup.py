@@ -21,6 +21,7 @@ class WorkingHours(Base):
     working_hours = sa.Column(sa.Float)
     is_sick = sa.Column(sa.Boolean, nullable=True, default=False)
     is_on_vacation = sa.Column(sa.Boolean, nullable=True, default=False)
+    is_resting = sa.Column(sa.Boolean, nullable=True, default=False)
 
 class WeekSchedule(Base):
     __tablename__ = 'week_schedule'

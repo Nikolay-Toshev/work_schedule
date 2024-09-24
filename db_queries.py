@@ -77,6 +77,14 @@ def add_working_hours(start_hour, end_hour, radio_var):
         new_working_hours.end_hour = '8:00'
         new_working_hours.working_hours = 8
 
+    if radio_var == 3:
+        if session.query(db.WorkingHours).filter(db.WorkingHours.is_resting == 1).first():
+            return
+        new_working_hours.is_resting = True
+        new_working_hours.start_hour = '0:00'
+        new_working_hours.end_hour = '0:00'
+        new_working_hours.working_hours = 0
+
     if session.query(db.WorkingHours).filter(
             db.WorkingHours.start_hour == db_start_hour,
             db.WorkingHours.end_hour == db_end_hour,
@@ -96,15 +104,27 @@ def remove_working_hours(start_hour, end_hour, radio_var):
 
     db_start_hour = f'{start_hour[0]}:{start_hour[1]:02d}'
     db_end_hour = f'{end_hour[0]}:{end_hour[1]:02d}'
-    db_is_on_vacation = 1 if radio_var == 1 else 0
-    db_is_sick = 1 if radio_var == 2 else 0
 
-    working_hours_to_delete = session.query(db.WorkingHours).filter(
-        db.WorkingHours.start_hour == db_start_hour,
-        db.WorkingHours.end_hour == db_end_hour,
-        db.WorkingHours.is_on_vacation == db_is_on_vacation,
-        db.WorkingHours.is_sick == db_is_sick
-    ).first()
+    if radio_var == 0:
+        working_hours_to_delete = session.query(db.WorkingHours).filter(
+            db.WorkingHours.start_hour == db_start_hour,
+            db.WorkingHours.end_hour == db_end_hour,
+        ).first()
+
+    if radio_var == 1:
+        working_hours_to_delete = session.query(db.WorkingHours).filter(
+            db.WorkingHours.is_on_vacation == 1,
+        ).first()
+
+    if radio_var == 2:
+        working_hours_to_delete = session.query(db.WorkingHours).filter(
+            db.WorkingHours.is_sick == 1,
+        ).first()
+
+    if radio_var == 3:
+        working_hours_to_delete = session.query(db.WorkingHours).filter(
+            db.WorkingHours.is_resting == 1,
+        ).first()
 
     if working_hours_to_delete is not None:
         session.delete(working_hours_to_delete)
@@ -118,11 +138,18 @@ def list_working_hours():
     working_hours = session.query(db.WorkingHours).all()
 
     for work_hour in working_hours:
-        all_working_hours.append(f''
-                                 f'  {work_hour.start_hour} - {work_hour.end_hour}, '
-                                 f'Отработени часове: {work_hour.working_hours}'
-                                 f'{" - Отпуск" if work_hour.is_on_vacation == 1 else ""}'
-                                 f'{" - Болничен" if work_hour.is_sick == 1 else ""}')
+        if work_hour.is_on_vacation == 1 or work_hour.is_sick == 1 or work_hour.is_resting == 1:
+            all_working_hours.append(
+                f'{"  Отпуск" if work_hour.is_on_vacation == 1 else ""}'
+                f'{"  Болничен" if work_hour.is_sick == 1 else ""}'
+                f'{"  Почива" if work_hour.is_resting == 1 else ""}'
+            )
+
+        else:
+            all_working_hours.append(
+                f'  {work_hour.start_hour} - {work_hour.end_hour}, '
+                f'Отработени часове: {work_hour.working_hours}'
+            )
 
     all_working_hours_str = '\n'.join(all_working_hours)
 

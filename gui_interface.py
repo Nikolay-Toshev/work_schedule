@@ -26,8 +26,8 @@ class App:
         self.winfo_children_destroy()
 
         self.master.columnconfigure(0, weight=1)
-        self.master.columnconfigure(1, weight=3)
-        self.master.columnconfigure(2, weight=2)
+        self.master.columnconfigure(1, weight=1)
+        self.master.columnconfigure(2, weight=1)
         self.master.columnconfigure(3, weight=1)
 
         add_employee_btn = Button(self.master, text="Добави/Премахни Работник", font=('Arial', 18), command=self.add_remove_employee)
@@ -86,46 +86,49 @@ class App:
 
         start_hour_entry = SpinTimePickerOld(self.master)
         start_hour_entry.addAll(constants.HOURS24)
-        start_hour_entry.grid(row=0, column=1, sticky="W", pady=30)
+        start_hour_entry.grid(row=0, column=1, sticky="W", pady=30, columnspan=2)
 
         end_hour_label = Label(self.master, text='Краен час', font=('Arial', 18))
         end_hour_label.grid(row=1, column=0, sticky="E", padx=15)
 
         end_hour_entry = SpinTimePickerOld(self.master)
         end_hour_entry.addAll(constants.HOURS24)
-        end_hour_entry.grid(row=1, column=1, sticky="W")
+        end_hour_entry.grid(row=1, column=1, sticky="W", columnspan=2)
 
         radiobutton_var = IntVar(master=self.master, value=0)
 
         is_on_vacation_radiobtn = Radiobutton(self.master, text='Отпуск', variable=radiobutton_var, value=1, font=('Arial', 18), )
-        is_on_vacation_radiobtn.grid(row=2, column=0, sticky="E", pady=30,)
+        is_on_vacation_radiobtn.grid(row=2, column=0, sticky="W", pady=30,)
 
         is_sick_radiobtn = Radiobutton(self.master, text='Болничен', variable=radiobutton_var, value=2, font=('Arial', 18))
         is_sick_radiobtn.grid(row=2, column=1, sticky="W",)
 
+        is_resting_radiobtn = Radiobutton(self.master, text='Почивка', variable=radiobutton_var, value=3, font=('Arial', 18))
+        is_resting_radiobtn.grid(row=2, column=2, sticky="W", )
+
         add_btn = Button(self.master, text='Добави', font=('Arial', 18), command=lambda: (
             add_working_hours(start_hour_entry.time(), end_hour_entry.time(), radiobutton_var.get()),
         ))
-        add_btn.grid(row=0, column=2, sticky="WE", padx=15, pady=30)
+        add_btn.grid(row=0, column=3, sticky="WE", padx=15, pady=30)
 
         remove_btn = Button(self.master, text='Премахни', font=('Arial', 18), command=lambda: (
             remove_working_hours(start_hour_entry.time(), end_hour_entry.time(), radiobutton_var.get()),
         ))
-        remove_btn.grid(row=1, column=2, sticky="WE", padx=15)
+        remove_btn.grid(row=1, column=3, sticky="WE", padx=15)
 
         sc = Scrollbar(self.master, orient='vertical')
-        sc.grid(row=3, column=0, sticky='nse', columnspan=2, rowspan=2)
+        sc.grid(row=3, column=0, sticky='nse', columnspan=3, rowspan=2)
         work_hours_list_text = Text(self.master, font=('Arial', 18), width=1, height=10, yscrollcommand=sc.set)
         work_hours_list_text.insert('1.0', str(list_working_hours()))
         sc.config(command=work_hours_list_text.yview)
-        work_hours_list_text.grid(row=3, column=0, padx=15, columnspan=2, rowspan=2, sticky="EWNS")
+        work_hours_list_text.grid(row=3, column=0, padx=15, columnspan=3, rowspan=2, sticky="EWNS")
 
         refresh_btn = Button(self.master, text='Опресни', command=lambda: refresh_data(work_hours_list_text, list_working_hours()),
                              font=('Arial', 18))
-        refresh_btn.grid(row=2, column=2, padx=15, pady=30, sticky="WE")
+        refresh_btn.grid(row=2, column=3, padx=15, pady=30, sticky="WE")
 
         main_page_btn = Button(self.master, text="Назад", command=self.main_page, font=('Arial', 18))
-        main_page_btn.grid(row=4, column=2, sticky="EWS", padx=15)
+        main_page_btn.grid(row=4, column=3, sticky="EWS", padx=15)
 
 
     def add_week_schedule(self):
