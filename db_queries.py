@@ -90,6 +90,7 @@ def add_working_hours(start_hour, end_hour, radio_var):
             db.WorkingHours.end_hour == db_end_hour,
             db.WorkingHours.is_sick == 0,
             db.WorkingHours.is_on_vacation == 0,
+            db.WorkingHours.is_resting ==0,
         ).first() and radio_var == 0:
         return
 
@@ -109,6 +110,9 @@ def remove_working_hours(start_hour, end_hour, radio_var):
         working_hours_to_delete = session.query(db.WorkingHours).filter(
             db.WorkingHours.start_hour == db_start_hour,
             db.WorkingHours.end_hour == db_end_hour,
+            db.WorkingHours.is_on_vacation == 0,
+            db.WorkingHours.is_sick == 0,
+            db.WorkingHours.is_resting == 0,
         ).first()
 
     if radio_var == 1:
