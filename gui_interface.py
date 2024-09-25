@@ -1,15 +1,19 @@
 from tkinter import Button, Label, Entry, Tk, Text, Scrollbar, IntVar, Radiobutton, StringVar
 from tkinter import OptionMenu
 
+from sqlalchemy.dialects.oracle.dictionary import all_users
 from tktimepicker import SpinTimePickerOld, constants
 
 from db_queries import add_employee, remove_employee, list_employees, add_working_hours, list_working_hours, \
-    remove_working_hours, add_week_schedule, remove_week_schedule, list_week_schedule
+    remove_working_hours, add_week_schedule, remove_week_schedule, list_week_schedule, get_employees, get_work_hours
 
 
 def refresh_data(text, func):
     text.delete('1.0', 'end')
     text.insert('1.0', str(func))
+
+
+
 
 
 class App:
@@ -23,6 +27,45 @@ class App:
     def winfo_children_destroy(self):
         for i in self.master.winfo_children():
             i.destroy()
+
+    def create_labels(self, row, col):
+        grid_row = row
+        grid_col = col
+        all_employees = get_employees()
+
+        employees_labels = {}
+
+        for i in range(len(all_employees)):
+
+            employees_labels[i] = Label(self.master, text=all_employees[i].name, font=('Arial', 18))
+            employees_labels[i].grid(row=grid_row, column=grid_col, sticky="E", padx=15, pady=30)
+            grid_row += 1
+
+        return employees_labels.values()
+
+
+    def create_option_menu(self, row, col):
+
+        grid_row = row
+        grid_col = col
+        all_employees = get_employees()
+
+        drop_down_vars = {}
+        option_menu = {}
+
+        optios = get_work_hours()
+
+        for i in range(len(all_employees)):
+
+            drop_down_vars[i] = StringVar(self.master)
+            drop_down_vars[i].set('Избери')
+
+            option_menu[i] = OptionMenu(self.master, drop_down_vars[i], *optios)
+            option_menu[i].config(font=('Arial', 18))
+            option_menu[i].grid(row=grid_row, column=grid_col, sticky="WE")
+            grid_row += 1
+
+        return drop_down_vars.values()
 
     def main_page(self):
         self.winfo_children_destroy()
@@ -144,26 +187,26 @@ class App:
             'Събота': 'saturday',
             'Неделя': 'sunday',
         }
+
         self.winfo_children_destroy()
 
-
-        add_remove_week_schedule_label = Label(self.master, text='Добави/Премахни нов\n седмичен график', font=('Arial', 18))
-        add_remove_week_schedule_label.grid(row=0, column=0, sticky="W", padx=15, pady=30)
+        add_remove_week_schedule_label = Label(self.master, text='Добави/Премахни\nседмичен график', font=('Arial', 18))
+        add_remove_week_schedule_label.grid(row=0, column=0, sticky="E", padx=15, pady=30)
 
         add_remove_week_schedule_entry = Entry(self.master, font=('Arial', 18))
         add_remove_week_schedule_entry.grid(row=0, column=1, sticky="WE", pady=30)
 
         add_btn = Button(self.master, text='Добави', font=('Arial', 18), command=lambda: (
-            add_week_schedule(add_remove_week_schedule_entry.get()), add_remove_week_schedule_entry.delete(0, 'end')))
+            add_week_schedule(add_remove_week_schedule_entry.get()), get_drop_down_data()))
         add_btn.grid(row=0, column=3, sticky="WE", padx=15, pady=30)
 
         remove_btn = Button(self.master, text='Премахни', font=('Arial', 18), command=lambda: (
             remove_week_schedule(add_remove_week_schedule_entry.get()), add_remove_week_schedule_entry.delete(0, 'end')))
         remove_btn.grid(row=0, column=4, sticky="WE", padx=15, pady=10)
 
-        add_remove_week_day_label = Label(self.master, text='Добави/Премахни нов\n седмичен график',
-                                               font=('Arial', 18))
-        add_remove_week_day_label.grid(row=1, column=0, sticky="W", padx=15)
+        choose_week_day_label = Label(self.master, text='Избери работен ден',
+                                      font=('Arial', 18))
+        choose_week_day_label.grid(row=1, column=0, sticky="E", padx=15)
 
         drop_down_var = StringVar(self.master)
         drop_down_var.set('Избери')  # default value
@@ -172,12 +215,16 @@ class App:
         week_days_option.config(font=('Arial', 18))
         week_days_option.grid(row=1, column=1, sticky="WE")
 
+        employees = self.create_labels(2, 0)
+
+        option_menus = self.create_option_menu(2, 1)
+
         sc = Scrollbar(self.master, orient='vertical')
-        sc.grid(row=2, column=3, sticky='nse', pady=30, columnspan=2, rowspan=3,)
+        sc.grid(row=2, column=3, sticky='nse', pady=30, columnspan=2, rowspan=10)
         week_schedule_list_text = Text(self.master, font=('Arial', 18), width=1, height=21, yscrollcommand=sc.set)
         week_schedule_list_text.insert('1.0', str(list_week_schedule()))
         sc.config(command=week_schedule_list_text.yview)
-        week_schedule_list_text.grid(row=2, column=3, padx=15, pady=30, columnspan=2, rowspan=3, sticky="EWNS")
+        week_schedule_list_text.grid(row=2, column=3, padx=15, pady=30, columnspan=2, rowspan=10, sticky="EWNS")
 
         refresh_btn = Button(self.master, text='Опресни',
                              command=lambda: refresh_data(week_schedule_list_text, list_week_schedule()),
@@ -185,13 +232,15 @@ class App:
         refresh_btn.grid(row=1, column=3, padx=15, sticky="WE", columnspan=2)
 
         main_page_btn = Button(self.master, text="Назад", command=self.main_page, font=('Arial', 18))
-        main_page_btn.grid(row=5, column=4, sticky="EWS", padx=15)
+        main_page_btn.grid(row=12, column=4, sticky="EWS", padx=15)
 
-
-
-
-
-
+        def get_drop_down_data():
+            print(add_remove_week_schedule_entry.get())
+            print(drop_down_var.get())
+            for option in option_menus:
+                print(option.get())
+            for employee in employees:
+                print(employee.cget('text'))
 
 
 if __name__ == "__main__":

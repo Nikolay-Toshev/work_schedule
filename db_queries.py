@@ -45,6 +45,10 @@ def list_employees():
     return all_employees_str
 
 
+def get_employees():
+    return session.query(db.Employee).all()
+
+
 def add_working_hours(start_hour, end_hour, radio_var):
     db_start_hour = f'{start_hour[0]}:{start_hour[1]:02d}'
     db_end_hour = f'{end_hour[0]}:{end_hour[1]:02d}'
@@ -159,6 +163,26 @@ def list_working_hours():
     all_working_hours_str = '\n'.join(all_working_hours)
 
     return all_working_hours_str
+
+
+def get_work_hours():
+    all_working_hours = []
+    working_hours = session.query(db.WorkingHours).all()
+
+    for work_hour in working_hours:
+        if work_hour.is_on_vacation == 1 or work_hour.is_sick == 1 or work_hour.is_resting == 1:
+            all_working_hours.append(
+                f'{"Отпуск" if work_hour.is_on_vacation == 1 else ""}'
+                f'{"Болничен" if work_hour.is_sick == 1 else ""}'
+                f'{"Почива" if work_hour.is_resting == 1 else ""}'
+            )
+
+        else:
+            all_working_hours.append(
+                f'{work_hour.start_hour} - {work_hour.end_hour}'
+            )
+
+    return all_working_hours
 
 
 def add_week_schedule(week_schedule):
