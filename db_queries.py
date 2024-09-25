@@ -160,5 +160,18 @@ def list_working_hours():
 
     return all_working_hours_str
 
+
+def add_week_schedule(week_schedule):
+    pass
+
+
+def remove_week_schedule(week_schedule):
+    pass
+
+
+def list_week_schedule():
+    pass
+
+
 if __name__ == '__main__':
     pass
