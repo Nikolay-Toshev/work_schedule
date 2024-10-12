@@ -53,14 +53,14 @@ class App:
         drop_down_vars = {}
         option_menu = {}
 
-        optios = get_work_hours()
+        options = get_work_hours()
 
         for i in range(len(all_employees)):
 
             drop_down_vars[i] = StringVar(self.master)
             drop_down_vars[i].set('Избери')
 
-            option_menu[i] = OptionMenu(self.master, drop_down_vars[i], *optios)
+            option_menu[i] = OptionMenu(self.master, drop_down_vars[i], *options)
             option_menu[i].config(font=('Arial', 18))
             option_menu[i].grid(row=grid_row, column=grid_col, sticky="WE")
             grid_row += 1
@@ -81,7 +81,7 @@ class App:
         add_btn = Button(self.master, text="Добави/Премахни работни часове", font=('Arial', 18), command=self.add_remove_workhours)
         add_btn.grid(row=1, column=3, sticky="EW", padx=15, columnspan=2)
 
-        add_week_schedule_btn = Button(self.master, text="Добави/Премахни седмичен график", font=('Arial', 18), command=self.add_week_schedule)
+        add_week_schedule_btn = Button(self.master, text="Добави/Премахни седмичен график", font=('Arial', 18), command=self.add_remove_week_schedule)
         add_week_schedule_btn.grid(row=2, column=3, sticky="EW", padx=15, pady=30, columnspan=2)
 
 
@@ -176,7 +176,7 @@ class App:
         main_page_btn.grid(row=4, column=3, sticky="EWS", padx=15)
 
 
-    def add_week_schedule(self):
+    def add_remove_week_schedule(self):
 
         WEEK_DAYS = {
             'Понеделник': 'monday',
@@ -197,7 +197,7 @@ class App:
         add_remove_week_schedule_entry.grid(row=0, column=1, sticky="WE", pady=30)
 
         add_btn = Button(self.master, text='Добави', font=('Arial', 18), command=lambda: (
-            add_week_schedule(add_remove_week_schedule_entry.get()), get_drop_down_data()))
+            add_week_schedule(add_remove_week_schedule_entry, drop_down_var, option_menus, employees)))
         add_btn.grid(row=0, column=3, sticky="WE", padx=15, pady=30)
 
         remove_btn = Button(self.master, text='Премахни', font=('Arial', 18), command=lambda: (
@@ -222,25 +222,18 @@ class App:
         sc = Scrollbar(self.master, orient='vertical')
         sc.grid(row=2, column=3, sticky='nse', pady=30, columnspan=2, rowspan=10)
         week_schedule_list_text = Text(self.master, font=('Arial', 18), width=1, height=21, yscrollcommand=sc.set)
-        week_schedule_list_text.insert('1.0', str(list_week_schedule()))
+        week_schedule_list_text.insert('1.0', str(list_week_schedule(add_remove_week_schedule_entry.get())))
         sc.config(command=week_schedule_list_text.yview)
         week_schedule_list_text.grid(row=2, column=3, padx=15, pady=30, columnspan=2, rowspan=10, sticky="EWNS")
 
         refresh_btn = Button(self.master, text='Опресни',
-                             command=lambda: refresh_data(week_schedule_list_text, list_week_schedule()),
+                             command=lambda: refresh_data(week_schedule_list_text, list_week_schedule(add_remove_week_schedule_entry.get())),
                              font=('Arial', 18))
         refresh_btn.grid(row=1, column=3, padx=15, sticky="WE", columnspan=2)
 
         main_page_btn = Button(self.master, text="Назад", command=self.main_page, font=('Arial', 18))
         main_page_btn.grid(row=12, column=4, sticky="EWS", padx=15)
 
-        def get_drop_down_data():
-            print(add_remove_week_schedule_entry.get())
-            print(drop_down_var.get())
-            for option in option_menus:
-                print(option.get())
-            for employee in employees:
-                print(employee.cget('text'))
 
 
 if __name__ == "__main__":
