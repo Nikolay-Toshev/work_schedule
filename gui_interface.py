@@ -5,7 +5,8 @@ from sqlalchemy.dialects.oracle.dictionary import all_users
 from tktimepicker import SpinTimePickerOld, constants
 
 from db_queries import add_employee, remove_employee, list_employees, add_working_hours, list_working_hours, \
-    remove_working_hours, add_week_schedule, remove_week_schedule, list_week_schedule, get_employees, get_work_hours
+    remove_working_hours, add_week_schedule, remove_week_schedule, list_week_schedule, get_employees, get_work_hours, \
+    list_week_schedule_name, check_week_schedule
 
 
 def refresh_data(text, func):
@@ -84,6 +85,8 @@ class App:
         add_week_schedule_btn = Button(self.master, text="Добави/Премахни седмичен график", font=('Arial', 18), command=self.add_remove_week_schedule)
         add_week_schedule_btn.grid(row=2, column=3, sticky="EW", padx=15, pady=30, columnspan=2)
 
+        check_week_schedule_btn = Button(self.master, text="Прегледай/Промени седмичен график", font=('Arial', 18), command=self.check_edit_week_schedule)
+        check_week_schedule_btn.grid(row=3, column=3, sticky="EW", padx=15, columnspan=2)
 
     def add_remove_employee(self):
         self.winfo_children_destroy()
@@ -230,6 +233,76 @@ class App:
                              command=lambda: refresh_data(week_schedule_list_text, list_week_schedule(add_remove_week_schedule_entry.get())),
                              font=('Arial', 18))
         refresh_btn.grid(row=1, column=3, padx=15, sticky="WE", columnspan=2)
+
+        main_page_btn = Button(self.master, text="Назад", command=self.main_page, font=('Arial', 18))
+        main_page_btn.grid(row=12, column=4, sticky="EWS", padx=15)
+
+    def check_edit_week_schedule(self):
+
+        WEEK_DAYS = {
+            'Понеделник': 'monday',
+            'Вторник': 'tuesday',
+            'Сряда': 'wednesday',
+            'Четвъртък': 'thursday',
+            'Петък': 'friday',
+            'Събота': 'saturday',
+            'Неделя': 'sunday',
+        }
+
+        week_names = list_week_schedule_name()
+        employees = [employee.name for employee in get_employees()]
+        working_hours = get_work_hours()
+
+        self.winfo_children_destroy()
+
+        drop_down_schedule_name = StringVar(self.master)
+        drop_down_schedule_name.set('Избери')
+
+        schedule_name_label = Label(self.master, text='Избери седмичен график', font=('Arial', 18))
+        schedule_name_label.grid(row=0, column=0, sticky="E", padx=15, pady=30)
+
+        schedule_name_option = OptionMenu(self.master, drop_down_schedule_name, *week_names)
+        schedule_name_option.config(font=('Arial', 18))
+        schedule_name_option.grid(row=0, column=1, sticky="WE")
+
+        drop_down_days = StringVar(self.master)
+        drop_down_days.set('Избери')
+
+        days_label = Label(self.master, text='Избери ден', font=('Arial', 18))
+        days_label.grid(row=1, column=0, sticky="E", padx=15)
+
+        days_option = OptionMenu(self.master, drop_down_days, *WEEK_DAYS)
+        days_option.config(font=('Arial', 18))
+        days_option.grid(row=1, column=1, sticky="WE")
+
+        drop_down_employees = StringVar(self.master)
+        drop_down_employees.set('Избери')
+
+        employees_label = Label(self.master, text='Избери работник', font=('Arial', 18))
+        employees_label.grid(row=2, column=0, sticky="E", padx=15, pady=30)
+
+        employees_option = OptionMenu(self.master, drop_down_employees, *employees)
+        employees_option.config(font=('Arial', 18))
+        employees_option.grid(row=2, column=1, sticky="WE")
+
+        drop_down_hours = StringVar(self.master)
+        drop_down_hours.set('Избери')
+
+        hours_label = Label(self.master, text='Избери работни часове', font=('Arial', 18))
+        hours_label.grid(row=3, column=0, sticky="E", padx=15)
+
+        hours_option = OptionMenu(self.master, drop_down_hours, *working_hours)
+        hours_option.config(font=('Arial', 18))
+        hours_option.grid(row=3, column=1, sticky="WE")
+
+        check_label = Button(self.master, text='Провери', font=('Arial', 18), command=lambda: (
+            check_week_schedule(drop_down_schedule_name.get(), drop_down_days.get())
+        ))
+        check_label.grid(row=0, column=3, sticky="EW", padx=15, columnspan=2)
+
+        update_label = Button(self.master, text='Промени', font=('Arial', 18))
+        update_label.grid(row=2, column=3, sticky="EW", padx=15, columnspan=2)
+
 
         main_page_btn = Button(self.master, text="Назад", command=self.main_page, font=('Arial', 18))
         main_page_btn.grid(row=12, column=4, sticky="EWS", padx=15)

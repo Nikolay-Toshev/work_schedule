@@ -1,7 +1,6 @@
-import time
 
 import db_setup as db
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, joinedload
 from datetime import datetime
 
 Session = sessionmaker(bind = db.engine)
@@ -331,6 +330,34 @@ def list_week_schedule(week_schedule):
         filled_days.append(f'{line.weekday} е попълнен.')
 
     return '\n'.join(filled_days)
+
+
+def list_week_schedule_name():
+    week_schedules = (session
+                          .query(db.WeekSchedule)
+                          .group_by(db.WeekSchedule.week)
+                          .all())
+
+    week_schedules_names = [week.week for week in week_schedules]
+
+    return week_schedules_names
+
+
+def check_week_schedule(week_schedule, weekday):
+
+    if week_schedule == 'Избери' or weekday == 'Избери':
+        return
+
+    weekday_schedule_employees = (session
+                                  .query(db.WeekSchedule)
+                                  .filter(db.WeekSchedule.weekday == weekday, db.WeekSchedule.week == week_schedule))
+
+    for employee_schedule in weekday_schedule_employees:
+        employee = session.query(db.Employee).filter(db.Employee.id == employee_schedule.employee).first()
+        work_hours = session.query(db.WorkingHours).filter(db.WorkingHours.id == employee_schedule.working_hours).first()
+
+        # need to be returned in format {employee.name} : {work_hours.start_hour} - {work_hours.end_hour} or {not working options like 'is_sick'}
+    return
 
 
 if __name__ == '__main__':

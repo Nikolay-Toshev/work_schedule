@@ -34,3 +34,13 @@ class WeekSchedule(Base):
     employee = sa.Column(sa.Integer, sa.ForeignKey('employees.id'))
     working_hours = sa.Column(sa.Integer, sa.ForeignKey('working_hours.id'))
 
+
+class MonthSchedule(Base):
+    __tablename__ = 'month_schedule'
+
+    id = sa.Column(sa.Integer, primary_key=True)
+    day = sa.Column(sa.String)
+    month = sa.Column(sa.String)
+    year = sa.Column(sa.String)
+    week = sa.ForeignKey('week_schedule.id')
+
