@@ -1,19 +1,14 @@
-from tkinter import Button, Label, Entry, Tk, Text, Scrollbar, IntVar, Radiobutton, StringVar
-from tkinter import OptionMenu
-
-from sqlalchemy.dialects.oracle.dictionary import all_users
+from tkinter import Button, Label, Entry, Tk, Text, Scrollbar, IntVar, Radiobutton, StringVar, OptionMenu
 from tktimepicker import SpinTimePickerOld, constants
 
 from db_queries import add_employee, remove_employee, list_employees, add_working_hours, list_working_hours, \
     remove_working_hours, add_week_schedule, remove_week_schedule, list_week_schedule, get_employees, get_work_hours, \
-    list_week_schedule_name, check_week_schedule
+    list_week_schedule_name, check_week_schedule, update_week_schedule, add_month
 
 
 def refresh_data(text, func):
     text.delete('1.0', 'end')
     text.insert('1.0', str(func))
-
-
 
 
 
@@ -44,7 +39,6 @@ class App:
 
         return employees_labels.values()
 
-
     def create_option_menu(self, row, col):
 
         grid_row = row
@@ -68,6 +62,37 @@ class App:
 
         return drop_down_vars.values()
 
+    def create_labels_and_option_menu_weeks(self, row, col, month):
+
+        grid_row = row
+        grid_col = col
+
+        drop_down_vars = {}
+        option_menu = {}
+        week_labels = {}
+
+        options = list_week_schedule_name()
+
+        week_number = 1
+
+        for i in range(len(month)):
+            if month[i][1] == "Понеделник" or month[i][0] == 1:
+
+                drop_down_vars[week_number] = StringVar(self.master)
+                drop_down_vars[week_number].set('Избери')
+
+                option_menu[week_number] = OptionMenu(self.master, drop_down_vars[week_number], *options)
+                option_menu[week_number].config(font=('Arial', 18))
+                option_menu[week_number].grid(row=grid_row, column=grid_col + 1, sticky="WE")
+
+                week_labels[week_number] = Label(self.master, text=f'week {week_number}', font=('Arial', 18))
+                week_labels[week_number].grid(row=grid_row, column=grid_col, sticky="E", padx=15)
+
+                week_number += 1
+                grid_row += 1
+
+        return drop_down_vars.values()
+
     def main_page(self):
         self.winfo_children_destroy()
 
@@ -87,6 +112,10 @@ class App:
 
         check_week_schedule_btn = Button(self.master, text="Прегледай/Промени седмичен график", font=('Arial', 18), command=self.check_edit_week_schedule)
         check_week_schedule_btn.grid(row=3, column=3, sticky="EW", padx=15, columnspan=2)
+
+        check_week_schedule_btn = Button(self.master, text="Създай месечен график", font=('Arial', 18),
+                                         command=self.create_month_schedule)
+        check_week_schedule_btn.grid(row=4, column=3, sticky="EW", padx=15, pady= 30, columnspan=2)
 
     def add_remove_employee(self):
         self.winfo_children_destroy()
@@ -124,7 +153,6 @@ class App:
 
         main_page_btn = Button(self.master, text="Назад", command=self.main_page, font=('Arial', 18))
         main_page_btn.grid(row=4, column=3, sticky="EWS", padx=15)
-
 
     def add_remove_workhours(self):
         self.winfo_children_destroy()
@@ -178,18 +206,16 @@ class App:
         main_page_btn = Button(self.master, text="Назад", command=self.main_page, font=('Arial', 18))
         main_page_btn.grid(row=4, column=3, sticky="EWS", padx=15)
 
-
     def add_remove_week_schedule(self):
 
-        WEEK_DAYS = {
-            'Понеделник': 'monday',
-            'Вторник': 'tuesday',
-            'Сряда': 'wednesday',
-            'Четвъртък': 'thursday',
-            'Петък': 'friday',
-            'Събота': 'saturday',
-            'Неделя': 'sunday',
-        }
+        WEEK_DAYS = [
+            'Понеделник',
+            'Вторник',
+            'Сряда',
+            'Четвъртък',
+            'Събота',
+            'Неделя',
+        ]
 
         self.winfo_children_destroy()
 
@@ -239,15 +265,14 @@ class App:
 
     def check_edit_week_schedule(self):
 
-        WEEK_DAYS = {
-            'Понеделник': 'monday',
-            'Вторник': 'tuesday',
-            'Сряда': 'wednesday',
-            'Четвъртък': 'thursday',
-            'Петък': 'friday',
-            'Събота': 'saturday',
-            'Неделя': 'sunday',
-        }
+        WEEK_DAYS = [
+            'Понеделник',
+            'Вторник',
+            'Сряда',
+            'Четвъртък',
+            'Събота',
+            'Неделя',
+        ]
 
         week_names = list_week_schedule_name()
         employees = [employee.name for employee in get_employees()]
@@ -296,18 +321,69 @@ class App:
         hours_option.grid(row=3, column=1, sticky="WE")
 
         check_label = Button(self.master, text='Провери', font=('Arial', 18), command=lambda: (
-            check_week_schedule(drop_down_schedule_name.get(), drop_down_days.get())
+            refresh_data(week_schedule_list_text, str(check_week_schedule(drop_down_schedule_name.get(), drop_down_days.get())))
         ))
         check_label.grid(row=0, column=3, sticky="EW", padx=15, columnspan=2)
 
-        update_label = Button(self.master, text='Промени', font=('Arial', 18))
+        update_label = Button(self.master, text='Промени', font=('Arial', 18), command=lambda: (update_week_schedule(drop_down_schedule_name.get(), drop_down_days.get(), drop_down_employees.get(), drop_down_hours.get())))
         update_label.grid(row=2, column=3, sticky="EW", padx=15, columnspan=2)
+
+        sc = Scrollbar(self.master, orient='vertical')
+        sc.grid(row=4, column=0, sticky='nse', pady=30, columnspan=2, rowspan=3)
+        week_schedule_list_text = Text(self.master, font=('Arial', 18), width=1, height=16, yscrollcommand=sc.set)
+        week_schedule_list_text.insert('1.0', str(check_week_schedule(drop_down_schedule_name.get(), drop_down_days.get()) or ''))
+        sc.config(command=week_schedule_list_text.yview)
+        week_schedule_list_text.grid(row=4, column=0, padx=15, pady=30, columnspan=2, rowspan=3, sticky="EWNS")
 
 
         main_page_btn = Button(self.master, text="Назад", command=self.main_page, font=('Arial', 18))
         main_page_btn.grid(row=12, column=4, sticky="EWS", padx=15)
 
+    def create_month_schedule(self):
 
+        self.winfo_children_destroy()
+
+        months = [
+            'Януари',
+            'Февруари',
+            'Март',
+            "Април",
+            'Май',
+            'Юни',
+            'Юли',
+            'Август',
+            'Септември',
+            'Октомври',
+            'Ноември',
+            'Декември',
+        ]
+
+        drop_down_months = StringVar(self.master)
+        drop_down_months.set('Избери')
+
+        months_label = Label(self.master, text='Избери месец', font=('Arial', 18))
+        months_label.grid(row=0, column=0, sticky="E", padx=15, pady=30)
+
+        months_option = OptionMenu(self.master, drop_down_months, *months)
+        months_option.config(font=('Arial', 18))
+        months_option.grid(row=0, column=1, sticky="WE")
+
+        year_label = Label(self.master, text='Избери година', font=('Arial', 18))
+        year_label.grid(row=0, column=2, sticky="E", padx=15, pady=30)
+
+        year_entry = Entry(self.master, font=('Arial', 18))
+        year_entry.grid(row=0, column=3, sticky="WE")
+
+        add_label = Button(self.master, text='Добави месец', font=('Arial', 18), command=lambda: (
+            self.create_labels_and_option_menu_weeks(1, 0, add_month(drop_down_months.get(), year_entry.get()))
+        ))
+        add_label.grid(row=0, column=4, sticky="EW", padx=15, columnspan=2)
+
+        # need to destroy the labels and option menus when reentering month and year and recreate them
+
+
+        main_page_btn = Button(self.master, text="Назад", command=self.main_page, font=('Arial', 18))
+        main_page_btn.grid(row=12, column=4, sticky="W", padx=15)
 
 if __name__ == "__main__":
     root = Tk()

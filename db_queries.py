@@ -1,7 +1,8 @@
 
 import db_setup as db
-from sqlalchemy.orm import sessionmaker, joinedload
+from sqlalchemy.orm import sessionmaker
 from datetime import datetime
+from calendar_fumction import days
 
 Session = sessionmaker(bind = db.engine)
 session = Session()
@@ -304,7 +305,6 @@ def add_week_schedule(add_remove_week_schedule_entry, drop_down_var, option_menu
     return
 
 
-
 def remove_week_schedule(week_schedule):
     lines_to_remove = (session
                        .query(db.WeekSchedule)
@@ -344,7 +344,7 @@ def list_week_schedule_name():
 
 
 def check_week_schedule(week_schedule, weekday):
-
+    schedule_to_return = []
     if week_schedule == 'Избери' or weekday == 'Избери':
         return
 
@@ -353,11 +353,85 @@ def check_week_schedule(week_schedule, weekday):
                                   .filter(db.WeekSchedule.weekday == weekday, db.WeekSchedule.week == week_schedule))
 
     for employee_schedule in weekday_schedule_employees:
+
         employee = session.query(db.Employee).filter(db.Employee.id == employee_schedule.employee).first()
         work_hours = session.query(db.WorkingHours).filter(db.WorkingHours.id == employee_schedule.working_hours).first()
 
-        # need to be returned in format {employee.name} : {work_hours.start_hour} - {work_hours.end_hour} or {not working options like 'is_sick'}
+        if work_hours.is_on_vacation == 1 or work_hours.is_sick == 1 or work_hours.is_resting == 1:
+            work_hours_to_print = (
+                f'{"Отпуск" if work_hours.is_on_vacation == 1 else ""}'
+                f'{"Болничен" if work_hours.is_sick == 1 else ""}'
+                f'{"Почива" if work_hours.is_resting == 1 else ""}'
+            )
+
+        else:
+            work_hours_to_print = (
+                f'{work_hours.start_hour} - {work_hours.end_hour}'
+            )
+        schedule_to_return.append(f'{employee.name} : {work_hours_to_print}')
+
+    return '\n'.join(schedule_to_return)
+
+
+def update_week_schedule(week_schedule, weekday, employee, working_hours):
+    employee_id = session.query(db.Employee).filter(db.Employee.name == employee).first().id
+    weekday_schedule_employee = (session
+                                 .query(db.WeekSchedule)
+                                 .filter(db.WeekSchedule.week == week_schedule, db.WeekSchedule.weekday == weekday, db.WeekSchedule.employee == employee_id)
+                                 .first()
+                                 )
+
+    if 'Избери' in working_hours:
+        # print('3')  # for debug
+        return
+
+    try:
+        start_hour, end_hour = working_hours.split(' - ')
+        work_hour = (session
+                     .query(db.WorkingHours)
+                     .filter(
+            db.WorkingHours.start_hour == start_hour,
+            db.WorkingHours.end_hour == end_hour)
+                     .first())
+
+        weekday_schedule_employee.working_hours = work_hour.id
+
+    except ValueError:
+
+        non_working_days = {
+            'Болничен': db.WorkingHours.is_sick == 1,
+            'Отпуск': db.WorkingHours.is_on_vacation == 1,
+            'Почива': db.WorkingHours.is_resting == 1,
+        }
+
+        work_hour = (session
+                     .query(db.WorkingHours)
+                     .filter(non_working_days[working_hours])
+                     .first())
+
+        weekday_schedule_employee.working_hours = work_hour.id
+
+    session.commit()
     return
+
+
+def add_month(month, year):
+    months = {
+        'Януари': 1,
+        'Февруари': 2,
+        'Март': 3,
+        "Април": 4,
+        'Май': 5,
+        'Юни': 6,
+        'Юли': 7,
+        'Август': 8,
+        'Септември': 9,
+        'Октомври': 10,
+        'Ноември': 11,
+        'Декември': 12,
+    }
+
+    return days(int(year), months[month])
 
 
 if __name__ == '__main__':
