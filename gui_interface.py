@@ -4,12 +4,12 @@ from tktimepicker import SpinTimePickerOld, constants
 from db_queries import add_employee, remove_employee, list_employees, add_working_hours, list_working_hours, \
     remove_working_hours, add_week_schedule, remove_week_schedule, list_week_schedule, get_employees, get_work_hours, \
     list_week_schedule_name, check_week_schedule, update_week_schedule, add_month
+from xls_table_create_and_modify import create_table, wb
 
 
 def refresh_data(text, func):
     text.delete('1.0', 'end')
     text.insert('1.0', str(func))
-
 
 
 class App:
@@ -19,6 +19,18 @@ class App:
         self.master.resizable(True, True)
         self.master.title("My GUI")
         self.main_page()
+
+    drop_down_vars_weeks = {}
+    option_menu_weeks = {}
+    week_labels = {}
+
+
+    def delete_labels_and_option_menus_weeks(self):
+        self.drop_down_vars_weeks = {}
+        for key in self.option_menu_weeks:
+            self.option_menu_weeks[key].destroy()
+        for key in self.week_labels:
+            self.week_labels[key].destroy()
 
     def winfo_children_destroy(self):
         for i in self.master.winfo_children():
@@ -64,12 +76,10 @@ class App:
 
     def create_labels_and_option_menu_weeks(self, row, col, month):
 
+        self.delete_labels_and_option_menus_weeks()
+
         grid_row = row
         grid_col = col
-
-        drop_down_vars = {}
-        option_menu = {}
-        week_labels = {}
 
         options = list_week_schedule_name()
 
@@ -78,20 +88,20 @@ class App:
         for i in range(len(month)):
             if month[i][1] == "Понеделник" or month[i][0] == 1:
 
-                drop_down_vars[week_number] = StringVar(self.master)
-                drop_down_vars[week_number].set('Избери')
+                self.drop_down_vars_weeks[week_number] = StringVar(self.master)
+                self.drop_down_vars_weeks[week_number].set('Избери')
 
-                option_menu[week_number] = OptionMenu(self.master, drop_down_vars[week_number], *options)
-                option_menu[week_number].config(font=('Arial', 18))
-                option_menu[week_number].grid(row=grid_row, column=grid_col + 1, sticky="WE")
+                self.option_menu_weeks[week_number] = OptionMenu(self.master, self.drop_down_vars_weeks[week_number], *options)
+                self.option_menu_weeks[week_number].config(font=('Arial', 18))
+                self.option_menu_weeks[week_number].grid(row=grid_row, column=grid_col + 1, sticky="WE")
 
-                week_labels[week_number] = Label(self.master, text=f'week {week_number}', font=('Arial', 18))
-                week_labels[week_number].grid(row=grid_row, column=grid_col, sticky="E", padx=15)
+                self.week_labels[week_number] = Label(self.master, text=f'week {week_number}', font=('Arial', 18))
+                self.week_labels[week_number].grid(row=grid_row, column=grid_col, sticky="E", padx=15, pady=30)
 
                 week_number += 1
                 grid_row += 1
 
-        return drop_down_vars.values()
+        return self.drop_down_vars_weeks.values()
 
     def main_page(self):
         self.winfo_children_destroy()
@@ -213,6 +223,7 @@ class App:
             'Вторник',
             'Сряда',
             'Четвъртък',
+            'Петък',
             'Събота',
             'Неделя',
         ]
@@ -270,6 +281,7 @@ class App:
             'Вторник',
             'Сряда',
             'Четвъртък',
+            'Петък',
             'Събота',
             'Неделя',
         ]
@@ -358,6 +370,23 @@ class App:
             'Декември',
         ]
 
+        years = [
+            2024,
+            2025,
+            2026,
+            2027,
+            2028,
+            2029,
+            2030,
+            2031,
+            2032,
+            2033,
+            2034,
+            2035,
+            2036,
+            2037,
+        ]
+
         drop_down_months = StringVar(self.master)
         drop_down_months.set('Избери')
 
@@ -368,22 +397,37 @@ class App:
         months_option.config(font=('Arial', 18))
         months_option.grid(row=0, column=1, sticky="WE")
 
-        year_label = Label(self.master, text='Избери година', font=('Arial', 18))
-        year_label.grid(row=0, column=2, sticky="E", padx=15, pady=30)
+        drop_down_years = StringVar(self.master)
+        drop_down_years.set('Избери')
 
-        year_entry = Entry(self.master, font=('Arial', 18))
-        year_entry.grid(row=0, column=3, sticky="WE")
+        year_label = Label(self.master, text='Избери година', font=('Arial', 18))
+        year_label.grid(row=1, column=0, sticky="E", padx=15, pady=30)
+
+        years_option = OptionMenu(self.master, drop_down_years, *years)
+        years_option.config(font=('Arial', 18))
+        years_option.grid(row=1, column=1, sticky="WE")
+
+        work_days_label = Label(self.master, text='Брой работни дни', font=('Arial', 18))
+        work_days_label.grid(row=2, column=0, sticky="E", padx=15, pady=30)
+
+        work_days_entry = Entry(self.master, font=('Arial', 18))
+        work_days_entry.grid(row=2, column=1, sticky="WE")
 
         add_label = Button(self.master, text='Добави месец', font=('Arial', 18), command=lambda: (
-            self.create_labels_and_option_menu_weeks(1, 0, add_month(drop_down_months.get(), year_entry.get()))
+            self.create_labels_and_option_menu_weeks(3, 0, add_month(drop_down_months.get(), drop_down_years.get()))
         ))
         add_label.grid(row=0, column=4, sticky="EW", padx=15, columnspan=2)
 
-        # need to destroy the labels and option menus when reentering month and year and recreate them
-
+        generate_xls = Button(self.master, text='Генерирай график', font=('Arial', 18), command=lambda: (
+            create_table(drop_down_years.get(), drop_down_months.get(), work_days_entry.get(), self.option_menu_weeks),
+            wb.save(f"{drop_down_months.get()}_{drop_down_years.get()}.xlsx")
+        ))
+        generate_xls.grid(row=1, column=4, sticky="EW", padx=15, columnspan=2)
 
         main_page_btn = Button(self.master, text="Назад", command=self.main_page, font=('Arial', 18))
-        main_page_btn.grid(row=12, column=4, sticky="W", padx=15)
+        main_page_btn.grid(row=12, column=4, sticky="EW", padx=15, columnspan=2)
+
+
 
 if __name__ == "__main__":
     root = Tk()

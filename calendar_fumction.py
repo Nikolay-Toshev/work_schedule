@@ -22,4 +22,4 @@ def days(year, month):
 
 
 if __name__ == '__main__':
-    print(days(2018, 1))
+    print(days(2018, 2))

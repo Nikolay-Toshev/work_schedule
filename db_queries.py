@@ -1,4 +1,3 @@
-
 import db_setup as db
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
@@ -432,6 +431,30 @@ def add_month(month, year):
     }
 
     return days(int(year), months[month])
+
+
+def get_working_hours_by_day_and_week_schedule(day, week_schedule):
+    all_working_hours = []
+    working_hours = session.query(db.WeekSchedule).filter(db.WeekSchedule.week == week_schedule, db.WeekSchedule.weekday == day).all()
+
+    for work_hour in working_hours:
+        employee = session.query(db.Employee).filter(db.Employee.id == work_hour.employee).first()
+        work_hours = session.query(db.WorkingHours).filter(db.WorkingHours.id == work_hour.working_hours).first()
+        if work_hours.is_on_vacation == 1 or work_hours.is_sick == 1 or work_hours.is_resting == 1:
+            all_working_hours.append((employee.name,
+                f'{"Отпуск" if work_hours.is_on_vacation == 1 else ""}'
+                f'{"Болничен" if work_hours.is_sick == 1 else ""}'
+                f'{"Почива" if work_hours.is_resting == 1 else ""}',
+                                      work_hours.working_hours,
+            ))
+
+        else:
+            all_working_hours.append((employee.name,
+                f'{work_hours.start_hour} - {work_hours.end_hour}',
+                                      work_hours.working_hours,
+            ))
+
+    return all_working_hours
 
 
 if __name__ == '__main__':
