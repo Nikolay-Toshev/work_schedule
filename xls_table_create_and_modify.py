@@ -1,6 +1,5 @@
 from openpyxl import Workbook
-from openpyxl.styles import cell_style, colors, Alignment
-from calendar_fumction import days
+from openpyxl.styles import Alignment
 from db_queries import get_employees, add_month, get_working_hours_by_day_and_week_schedule
 
 
@@ -12,7 +11,6 @@ def add_month_title(month, year):
 
 def vacation_days():
     ws['F3'] = 'Отпуск:'
-    # ws.merge_cells("G3:I5")
 
 
 def add_column_title():
@@ -97,7 +95,6 @@ def workhours_per_month():
 def create_table(year, month, workdays, option_menu_weeks):
     work_month = add_month(month, year)
     num_of_employees = len(get_employees())
-    employees = [employee.name for employee in get_employees()]
 
     n = 9
     add_month_title(month, year)
@@ -106,10 +103,7 @@ def create_table(year, month, workdays, option_menu_weeks):
     workdays_per_month(workdays)
     workhours_per_month()
     create_hours_per_month_formula(n, num_of_employees)
-    # print(option_menu_weeks)
     week_schedules = [(empl_id, week.cget('text')) for empl_id, week in option_menu_weeks.items()]
-    # for w in week_schedules:
-    #     print(w[1])
     w = 0
     for i in range(len(work_month)):
         week_schedule = week_schedules[w][1]

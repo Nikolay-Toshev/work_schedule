@@ -43,6 +43,10 @@ def list_employees():
 
     return all_employees_str
 
+def list_employee_names():
+    all_employees = [employee.name for employee in session.query(db.Employee).all()]
+    return all_employees
+
 
 def get_employees():
     return session.query(db.Employee).all()
