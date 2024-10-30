@@ -138,7 +138,8 @@ class App:
     def add_remove_employee(self):
         self.winfo_children_destroy()
 
-        all_employees = list_employee_names()
+        all_employees = ['Избери']
+        all_employees += list_employee_names()
 
         add_employee_label = Label(self.master, text='Добави нов работник', font=('Arial', 18))
         add_employee_label.grid(row=0, column=0, sticky="E", padx=15, pady=30)
@@ -152,7 +153,7 @@ class App:
             add_employee_entry.delete(0, 'end'),
             refresh_data(employee_list_text, list_employees()),
             self.refresh_options(drop_down_employee_name, employee_name_option, all_employees),
-            drop_down_employee_name.set('Избери'),
+            drop_down_employee_name.set(all_employees[0]),
         ))
 
         add_btn.grid(row=0, column=3, sticky="WE", padx=15, pady=30)
@@ -161,7 +162,7 @@ class App:
         remove_employee_label.grid(row=1, column=0, sticky="E", padx=15, pady=10)
 
         drop_down_employee_name = StringVar(self.master)
-        drop_down_employee_name.set('Избери')
+        drop_down_employee_name.set(all_employees[0])
 
         employee_name_option = OptionMenu(self.master, drop_down_employee_name, *all_employees)
         employee_name_option.config(font=('Arial', 18))
@@ -169,9 +170,9 @@ class App:
 
         remove_btn = Button(self.master, text='Премахни', font=('Arial', 18), command=lambda: (
             remove_employee(drop_down_employee_name.get()),
-            all_employees.remove(drop_down_employee_name.get()),
+            (all_employees.remove(drop_down_employee_name.get()) if drop_down_employee_name.get() != 'Избери' else None),
             self.refresh_options(drop_down_employee_name, employee_name_option, all_employees),
-            drop_down_employee_name.set('Избери'),
+            drop_down_employee_name.set(all_employees[0]),
             refresh_data(employee_list_text, list_employees()),
         ))
         remove_btn.grid(row=1, column=3, sticky="WE", padx=15, pady=10)
@@ -185,9 +186,6 @@ class App:
         employee_list_text.insert('1.0', str(list_employees()))
         sc.config(command=employee_list_text.yview)
         employee_list_text.grid(row=3, column=0, padx=15, columnspan=2, rowspan=2, sticky="EWNS")
-
-        refresh_btn = Button(self.master, text='Опресни', command=lambda : refresh_data(employee_list_text, list_employees()), font=('Arial', 18))
-        refresh_btn.grid(row=2, column=3, padx=15, pady=30, sticky="WE")
 
         main_page_btn = Button(self.master, text="Назад", command=self.main_page, font=('Arial', 18))
         main_page_btn.grid(row=4, column=3, sticky="EWS", padx=15)
