@@ -29,7 +29,7 @@ class WeekSchedule(Base):
     __tablename__ = 'week_schedule'
 
     id = sa.Column(sa.Integer, primary_key=True)
-    week = sa.Column(sa.String)
+    week = sa.Column(sa.ForeignKey('week_schedule_name.id'))
     weekday = sa.Column(sa.String)
     employee = sa.Column(sa.Integer, sa.ForeignKey('employees.id'))
     working_hours = sa.Column(sa.Integer, sa.ForeignKey('working_hours.id'))
@@ -43,4 +43,10 @@ class MonthSchedule(Base):
     month = sa.Column(sa.String)
     year = sa.Column(sa.String)
     week = sa.ForeignKey('week_schedule.id')
+
+
+class WeekScheduleName(Base):
+    __tablename__ = 'week_schedule_name'
+    id = sa.Column(sa.Integer, primary_key=True)
+    name = sa.Column(sa.String, unique=True)
 
