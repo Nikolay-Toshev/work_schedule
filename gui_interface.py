@@ -16,7 +16,7 @@ def refresh_data(text, func):
 class App:
     def __init__(self, master):
         self.master = master
-        self.master.geometry("1000x900")
+        self.master.geometry("1200x900")
         self.master.resizable(True, True)
         self.master.title("My GUI")
         self.main_page()
@@ -115,9 +115,9 @@ class App:
         self.winfo_children_destroy()
 
         self.master.columnconfigure(0, weight=1)
-        self.master.columnconfigure(1, weight=1)
-        self.master.columnconfigure(2, weight=1)
-        self.master.columnconfigure(3, weight=1)
+        self.master.columnconfigure(1, weight=3)
+        self.master.columnconfigure(2, weight=3)
+        self.master.columnconfigure(3, weight=3)
 
         add_employee_btn = Button(self.master, text="Добави/Премахни Работник", font=('Arial', 18), command=self.add_remove_employee)
         add_employee_btn.grid(row=0, column=3, sticky="EW", padx=15, pady=30, columnspan=2)
@@ -311,11 +311,11 @@ class App:
         # option_menus = self.create_option_menu(4, 1)
         #
         sc = Scrollbar(self.master, orient='vertical')
-        sc.grid(row=3, column=0, sticky='nse', pady=30, columnspan=2, rowspan=2)
+        sc.grid(row=3, column=1, sticky='nse', pady=15, columnspan=2, rowspan=2)
         week_schedule_list_text = Text(self.master, font=('Arial', 18), width=1, height=21, yscrollcommand=sc.set)
         week_schedule_list_text.insert('1.0', str('\n'.join(list_week_names())))
         sc.config(command=week_schedule_list_text.yview)
-        week_schedule_list_text.grid(row=3, column=0, padx=15, pady=15, columnspan=2, rowspan=2, sticky="EWNS")
+        week_schedule_list_text.grid(row=3, column=1, pady=15, columnspan=2, rowspan=2, sticky="EWNS")
         #
         # refresh_btn = Button(self.master, text='Опресни',
         #                      command=lambda: refresh_data(week_schedule_list_text, list_week_schedule(add_remove_week_schedule_entry.get())),
@@ -339,7 +339,7 @@ class App:
 
         week_names = list_week_schedule_name()
         employees = [employee.name for employee in get_employees()]
-        working_hours = get_work_hours()
+        # working_hours = get_work_hours()
 
         self.winfo_children_destroy()
 
@@ -347,7 +347,7 @@ class App:
         drop_down_schedule_name.set('Избери')
 
         schedule_name_label = Label(self.master, text='Избери седмичен график', font=('Arial', 18))
-        schedule_name_label.grid(row=0, column=0, sticky="E", padx=15, pady=30)
+        schedule_name_label.grid(row=0, column=0, sticky="E", padx=15, pady=15)
 
         schedule_name_option = OptionMenu(self.master, drop_down_schedule_name, *week_names)
         schedule_name_option.config(font=('Arial', 18))
@@ -361,46 +361,31 @@ class App:
 
         days_option = OptionMenu(self.master, drop_down_days, *WEEK_DAYS)
         days_option.config(font=('Arial', 18))
-        days_option.grid(row=1, column=1, sticky="WE")
+        days_option.grid(row=1, column=1, sticky="WE", pady=15)
 
-        drop_down_employees = StringVar(self.master)
-        drop_down_employees.set('Избери')
+        employees = self.create_labels(3, 0)
 
-        employees_label = Label(self.master, text='Избери работник', font=('Arial', 18))
-        employees_label.grid(row=2, column=0, sticky="E", padx=15, pady=30)
+        option_menus = self.create_option_menu(3, 1)
 
-        employees_option = OptionMenu(self.master, drop_down_employees, *employees)
-        employees_option.config(font=('Arial', 18))
-        employees_option.grid(row=2, column=1, sticky="WE")
-
-        drop_down_hours = StringVar(self.master)
-        drop_down_hours.set('Избери')
-
-        hours_label = Label(self.master, text='Избери работни часове', font=('Arial', 18))
-        hours_label.grid(row=3, column=0, sticky="E", padx=15)
-
-        hours_option = OptionMenu(self.master, drop_down_hours, *working_hours)
-        hours_option.config(font=('Arial', 18))
-        hours_option.grid(row=3, column=1, sticky="WE")
 
         check_label = Button(self.master, text='Провери', font=('Arial', 18), command=lambda: (
             refresh_data(week_schedule_list_text, str(check_week_schedule(drop_down_schedule_name.get(), drop_down_days.get())))
         ))
         check_label.grid(row=0, column=3, sticky="EW", padx=15, columnspan=2)
 
-        update_label = Button(self.master, text='Промени', font=('Arial', 18), command=lambda: (update_week_schedule(drop_down_schedule_name.get(), drop_down_days.get(), drop_down_employees.get(), drop_down_hours.get())))
-        update_label.grid(row=2, column=3, sticky="EW", padx=15, columnspan=2)
+        update_label = Button(self.master, text='Промени', font=('Arial', 18), command=lambda: (update_week_schedule(drop_down_schedule_name.get(), drop_down_days.get(), employees, option_menus)))
+        update_label.grid(row=3, column=3, sticky="EW", padx=15, columnspan=2)
 
         sc = Scrollbar(self.master, orient='vertical')
-        sc.grid(row=4, column=0, sticky='nse', pady=30, columnspan=2, rowspan=3)
+        sc.grid(row=4, column=3, sticky='nse', pady=30, columnspan=2, rowspan=10)
         week_schedule_list_text = Text(self.master, font=('Arial', 18), width=1, height=16, yscrollcommand=sc.set)
         week_schedule_list_text.insert('1.0', str(check_week_schedule(drop_down_schedule_name.get(), drop_down_days.get()) or ''))
         sc.config(command=week_schedule_list_text.yview)
-        week_schedule_list_text.grid(row=4, column=0, padx=15, pady=30, columnspan=2, rowspan=3, sticky="EWNS")
+        week_schedule_list_text.grid(row=4, column=3, padx=15, pady=30, columnspan=2, rowspan=10, sticky="EWNS")
 
 
         main_page_btn = Button(self.master, text="Назад", command=self.main_page, font=('Arial', 18))
-        main_page_btn.grid(row=12, column=3, sticky="EWS", padx=15, columnspan=2)
+        main_page_btn.grid(row=16, column=3, sticky="EWS", padx=15, columnspan=2)
 
     def create_month_schedule(self):
 
@@ -480,7 +465,7 @@ class App:
 
 
 
-if __name__ == "__main__":
-    root = Tk()
-    App(root)
-    root.mainloop()
+# if __name__ == "__main__":
+#     root = Tk()
+#     App(root)
+#     root.mainloop()

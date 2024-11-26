@@ -1,5 +1,5 @@
 import sqlalchemy as sa
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import declarative_base, relationship
 
 # Define Table Classes
 Base = declarative_base()
@@ -29,7 +29,7 @@ class WeekSchedule(Base):
     __tablename__ = 'week_schedule'
 
     id = sa.Column(sa.Integer, primary_key=True)
-    week = sa.Column(sa.ForeignKey('week_schedule_name.id'))
+    week = sa.Column(sa.Integer, sa.ForeignKey('week_schedule_name.id', ondelete='CASCADE'), nullable=False)  # Cascade delete on ForeignKey
     weekday = sa.Column(sa.String)
     employee = sa.Column(sa.Integer, sa.ForeignKey('employees.id'))
     working_hours = sa.Column(sa.Integer, sa.ForeignKey('working_hours.id'))
@@ -47,6 +47,12 @@ class MonthSchedule(Base):
 
 class WeekScheduleName(Base):
     __tablename__ = 'week_schedule_name'
+
     id = sa.Column(sa.Integer, primary_key=True)
     name = sa.Column(sa.String, unique=True)
-
+    week_name = sa.orm.relationship(
+        'WeekSchedule',
+        backref='week_schedule_name',
+        cascade='all, delete',  # Cascade delete on relationship
+        passive_deletes=True  # Required to properly propagate `ondelete` from the database
+    )
