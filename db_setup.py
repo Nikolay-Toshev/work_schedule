@@ -11,7 +11,11 @@ class Employee(Base):
 
     id = sa.Column(sa.Integer, primary_key=True)
     name = sa.Column(sa.String, unique=True)
-    schedule_employee = sa.orm.relationship('WeekSchedule')
+    schedule_employee = sa.orm.relationship(
+        'WeekSchedule',
+        backref='employees',
+        cascade='all, delete',
+    )
 
 class WorkingHours(Base):
     __tablename__ = 'working_hours'
@@ -23,16 +27,18 @@ class WorkingHours(Base):
     is_sick = sa.Column(sa.Boolean, nullable=True, default=False)
     is_on_vacation = sa.Column(sa.Boolean, nullable=True, default=False)
     is_resting = sa.Column(sa.Boolean, nullable=True, default=False)
-    schedule_work_hours = sa.orm.relationship('WeekSchedule')
+    schedule_work_hours = sa.orm.relationship(
+        'WeekSchedule',
+    )
 
 class WeekSchedule(Base):
     __tablename__ = 'week_schedule'
 
     id = sa.Column(sa.Integer, primary_key=True)
-    week = sa.Column(sa.Integer, sa.ForeignKey('week_schedule_name.id', ondelete='CASCADE'), nullable=False)  # Cascade delete on ForeignKey
+    week = sa.Column(sa.Integer, sa.ForeignKey('week_schedule_name.id'), nullable=False)
     weekday = sa.Column(sa.String)
-    employee = sa.Column(sa.Integer, sa.ForeignKey('employees.id'))
-    working_hours = sa.Column(sa.Integer, sa.ForeignKey('working_hours.id'))
+    employee_id = sa.Column(sa.Integer, sa.ForeignKey('employees.id'), nullable=False)
+    working_hours_id = sa.Column(sa.Integer, sa.ForeignKey('working_hours.id', ondelete='CASCADE'), nullable=True)
 
 
 class MonthSchedule(Base):
@@ -53,6 +59,5 @@ class WeekScheduleName(Base):
     week_name = sa.orm.relationship(
         'WeekSchedule',
         backref='week_schedule_name',
-        cascade='all, delete',  # Cascade delete on relationship
-        passive_deletes=True  # Required to properly propagate `ondelete` from the database
+        cascade='all, delete',
     )

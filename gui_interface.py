@@ -77,6 +77,9 @@ class App:
 
     def create_labels_and_option_menu_weeks(self, row, col, month):
 
+        if month == None:
+            return
+
         self.delete_labels_and_option_menus_weeks()
 
         grid_row = row
@@ -218,8 +221,8 @@ class App:
         is_sick_radiobtn = Radiobutton(self.master, text='Болничен', variable=radiobutton_var, value=2, font=('Arial', 18))
         is_sick_radiobtn.grid(row=2, column=2, sticky="W",)
 
-        is_resting_radiobtn = Radiobutton(self.master, text='Почивка', variable=radiobutton_var, value=3, font=('Arial', 18))
-        is_resting_radiobtn.grid(row=2, column=3, sticky="W", )
+        # is_resting_radiobtn = Radiobutton(self.master, text='Почивка', variable=radiobutton_var, value=3, font=('Arial', 18))
+        # is_resting_radiobtn.grid(row=2, column=3, sticky="W", )
 
         add_btn = Button(self.master, text='Добави', font=('Arial', 18), command=lambda: (
             add_working_hours(start_hour_entry.time(), end_hour_entry.time(), radiobutton_var.get()),
@@ -336,52 +339,56 @@ class App:
             'Събота',
             'Неделя',
         ]
-
-        week_names = list_week_schedule_name()
-        employees = [employee.name for employee in get_employees()]
-        # working_hours = get_work_hours()
-
         self.winfo_children_destroy()
-
-        drop_down_schedule_name = StringVar(self.master)
-        drop_down_schedule_name.set('Избери')
-
-        schedule_name_label = Label(self.master, text='Избери седмичен график', font=('Arial', 18))
-        schedule_name_label.grid(row=0, column=0, sticky="E", padx=15, pady=15)
-
-        schedule_name_option = OptionMenu(self.master, drop_down_schedule_name, *week_names)
-        schedule_name_option.config(font=('Arial', 18))
-        schedule_name_option.grid(row=0, column=1, sticky="WE")
-
-        drop_down_days = StringVar(self.master)
-        drop_down_days.set('Избери')
-
-        days_label = Label(self.master, text='Избери ден', font=('Arial', 18))
-        days_label.grid(row=1, column=0, sticky="E", padx=15)
-
-        days_option = OptionMenu(self.master, drop_down_days, *WEEK_DAYS)
-        days_option.config(font=('Arial', 18))
-        days_option.grid(row=1, column=1, sticky="WE", pady=15)
-
-        employees = self.create_labels(3, 0)
-
-        option_menus = self.create_option_menu(3, 1)
+        week_names = list_week_schedule_name()
+        if week_names:
+            employees = [employee.name for employee in get_employees()]
+            # working_hours = get_work_hours()
 
 
-        check_label = Button(self.master, text='Провери', font=('Arial', 18), command=lambda: (
-            refresh_data(week_schedule_list_text, str(check_week_schedule(drop_down_schedule_name.get(), drop_down_days.get())))
-        ))
-        check_label.grid(row=0, column=3, sticky="EW", padx=15, columnspan=2)
+            drop_down_schedule_name = StringVar(self.master)
+            drop_down_schedule_name.set('Избери')
 
-        update_label = Button(self.master, text='Промени', font=('Arial', 18), command=lambda: (update_week_schedule(drop_down_schedule_name.get(), drop_down_days.get(), employees, option_menus)))
-        update_label.grid(row=3, column=3, sticky="EW", padx=15, columnspan=2)
+            schedule_name_label = Label(self.master, text='Избери седмичен график', font=('Arial', 18))
+            schedule_name_label.grid(row=0, column=0, sticky="E", padx=15, pady=15)
 
-        sc = Scrollbar(self.master, orient='vertical')
-        sc.grid(row=4, column=3, sticky='nse', pady=30, columnspan=2, rowspan=10)
-        week_schedule_list_text = Text(self.master, font=('Arial', 18), width=1, height=16, yscrollcommand=sc.set)
-        week_schedule_list_text.insert('1.0', str(check_week_schedule(drop_down_schedule_name.get(), drop_down_days.get()) or ''))
-        sc.config(command=week_schedule_list_text.yview)
-        week_schedule_list_text.grid(row=4, column=3, padx=15, pady=30, columnspan=2, rowspan=10, sticky="EWNS")
+            schedule_name_option = OptionMenu(self.master, drop_down_schedule_name, *week_names)
+            schedule_name_option.config(font=('Arial', 18))
+            schedule_name_option.grid(row=0, column=1, sticky="WE")
+
+            drop_down_days = StringVar(self.master)
+            drop_down_days.set('Избери')
+
+            days_label = Label(self.master, text='Избери ден', font=('Arial', 18))
+            days_label.grid(row=1, column=0, sticky="E", padx=15)
+
+            days_option = OptionMenu(self.master, drop_down_days, *WEEK_DAYS)
+            days_option.config(font=('Arial', 18))
+            days_option.grid(row=1, column=1, sticky="WE", pady=15)
+
+            employees = self.create_labels(3, 0)
+
+            option_menus = self.create_option_menu(3, 1)
+
+
+            check_label = Button(self.master, text='Провери', font=('Arial', 18), command=lambda: (
+                refresh_data(week_schedule_list_text, str(check_week_schedule(drop_down_schedule_name.get(), drop_down_days.get())))
+            ))
+            check_label.grid(row=0, column=3, sticky="EW", padx=15, columnspan=2)
+
+            update_label = Button(self.master, text='Промени', font=('Arial', 18), command=lambda: (update_week_schedule(drop_down_schedule_name.get(), drop_down_days.get(), employees, option_menus)))
+            update_label.grid(row=3, column=3, sticky="EW", padx=15, columnspan=2)
+
+            sc = Scrollbar(self.master, orient='vertical')
+            sc.grid(row=4, column=3, sticky='nse', pady=30, columnspan=2, rowspan=10)
+            week_schedule_list_text = Text(self.master, font=('Arial', 18), width=1, height=16, yscrollcommand=sc.set)
+            week_schedule_list_text.insert('1.0', str(check_week_schedule(drop_down_schedule_name.get(), drop_down_days.get()) or ''))
+            sc.config(command=week_schedule_list_text.yview)
+            week_schedule_list_text.grid(row=4, column=3, padx=15, pady=30, columnspan=2, rowspan=10, sticky="EWNS")
+
+        else:
+            schedule_name_label = Label(self.master, text='Нямате създадени седмични графици', font=('Arial', 18))
+            schedule_name_label.grid(row=0, column=0, sticky="E", padx=15, pady=15)
 
 
         main_page_btn = Button(self.master, text="Назад", command=self.main_page, font=('Arial', 18))
@@ -422,43 +429,48 @@ class App:
             2036,
             2037,
         ]
+        week_names = list_week_schedule_name()
+        if week_names:
+            drop_down_months = StringVar(self.master)
+            drop_down_months.set('Избери')
 
-        drop_down_months = StringVar(self.master)
-        drop_down_months.set('Избери')
+            months_label = Label(self.master, text='Избери месец', font=('Arial', 18))
+            months_label.grid(row=0, column=0, sticky="E", padx=15, pady=30)
 
-        months_label = Label(self.master, text='Избери месец', font=('Arial', 18))
-        months_label.grid(row=0, column=0, sticky="E", padx=15, pady=30)
+            months_option = OptionMenu(self.master, drop_down_months, *months)
+            months_option.config(font=('Arial', 18))
+            months_option.grid(row=0, column=1, sticky="WE")
 
-        months_option = OptionMenu(self.master, drop_down_months, *months)
-        months_option.config(font=('Arial', 18))
-        months_option.grid(row=0, column=1, sticky="WE")
+            drop_down_years = StringVar(self.master)
+            drop_down_years.set('Избери')
 
-        drop_down_years = StringVar(self.master)
-        drop_down_years.set('Избери')
+            year_label = Label(self.master, text='Избери година', font=('Arial', 18))
+            year_label.grid(row=1, column=0, sticky="E", padx=15, pady=30)
 
-        year_label = Label(self.master, text='Избери година', font=('Arial', 18))
-        year_label.grid(row=1, column=0, sticky="E", padx=15, pady=30)
+            years_option = OptionMenu(self.master, drop_down_years, *years)
+            years_option.config(font=('Arial', 18))
+            years_option.grid(row=1, column=1, sticky="WE")
 
-        years_option = OptionMenu(self.master, drop_down_years, *years)
-        years_option.config(font=('Arial', 18))
-        years_option.grid(row=1, column=1, sticky="WE")
+            work_days_label = Label(self.master, text='Брой работни дни', font=('Arial', 18))
+            work_days_label.grid(row=2, column=0, sticky="E", padx=15, pady=30)
 
-        work_days_label = Label(self.master, text='Брой работни дни', font=('Arial', 18))
-        work_days_label.grid(row=2, column=0, sticky="E", padx=15, pady=30)
+            work_days_entry = Entry(self.master, font=('Arial', 18))
+            work_days_entry.grid(row=2, column=1, sticky="WE")
 
-        work_days_entry = Entry(self.master, font=('Arial', 18))
-        work_days_entry.grid(row=2, column=1, sticky="WE")
+            add_label = Button(self.master, text='Добави месец', font=('Arial', 18), command=lambda: (
+                self.create_labels_and_option_menu_weeks(3, 0, add_month(drop_down_months.get(), drop_down_years.get()))
+            ))
+            add_label.grid(row=0, column=4, sticky="EW", padx=15, columnspan=2)
 
-        add_label = Button(self.master, text='Добави месец', font=('Arial', 18), command=lambda: (
-            self.create_labels_and_option_menu_weeks(3, 0, add_month(drop_down_months.get(), drop_down_years.get()))
-        ))
-        add_label.grid(row=0, column=4, sticky="EW", padx=15, columnspan=2)
+            generate_xls = Button(self.master, text='Генерирай график', font=('Arial', 18), command=lambda: (
+                create_table(drop_down_years.get(), drop_down_months.get(), work_days_entry.get(), self.option_menu_weeks),
+                wb.save(f"{drop_down_months.get()}_{drop_down_years.get()}.xlsx")
+            ))
+            generate_xls.grid(row=1, column=4, sticky="EW", padx=15, columnspan=2)
 
-        generate_xls = Button(self.master, text='Генерирай график', font=('Arial', 18), command=lambda: (
-            create_table(drop_down_years.get(), drop_down_months.get(), work_days_entry.get(), self.option_menu_weeks),
-            wb.save(f"{drop_down_months.get()}_{drop_down_years.get()}.xlsx")
-        ))
-        generate_xls.grid(row=1, column=4, sticky="EW", padx=15, columnspan=2)
+        else:
+            months_label = Label(self.master, text='Създайте седмичен график и добавете работници за да използвате тази функционалност!', font=('Arial', 18))
+            months_label.grid(row=0, column=0, sticky="E", padx=15, pady=30)
 
         main_page_btn = Button(self.master, text="Назад", command=self.main_page, font=('Arial', 18))
         main_page_btn.grid(row=12, column=4, sticky="EW", padx=15, columnspan=2)

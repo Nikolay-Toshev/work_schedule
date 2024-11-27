@@ -46,7 +46,7 @@ def add_column_title():
 def add_days_to_table(i, n, work_month, num_of_employees):
     ws.merge_cells(f"A{n}:A{n + (num_of_employees - 1)}")
     ws[f"A{n}"] = f"{work_month[i][0]}\n{work_month[i][1]}"
-    ws[f"A{n}"].alignment = Alignment(horizontal='center', vertical='top')
+    ws[f"A{n}"].alignment = Alignment(horizontal='center', vertical='top', wrapText=True)
 
 
 def add_employees_and_hours(n, day, week_schedule, num_of_employees):

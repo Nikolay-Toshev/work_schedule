@@ -6,6 +6,15 @@ from calendar_fumction import days
 Session = sessionmaker(bind = db.engine)
 session = Session()
 
+WEEK_DAYS = [
+            'Понеделник',
+            'Вторник',
+            'Сряда',
+            'Четвъртък',
+            'Петък',
+            'Събота',
+            'Неделя',
+        ]
 
 def add_employee(employee):
     if not employee:
@@ -18,7 +27,22 @@ def add_employee(employee):
 
     session.add(new_employee)
     session.commit()
+    # update existing week schedules
+    employee_new = session.query(db.Employee).filter(db.Employee.name == employee).first()
+    week_schedule_names = session.query(db.WeekScheduleName).all()
 
+    if week_schedule_names:
+        day_off = session.query(db.WorkingHours).filter(db.WorkingHours.is_resting == True).first()
+        for week_schedule in week_schedule_names:
+            for day in WEEK_DAYS:
+                week_schedule_line = db.WeekSchedule(
+                    week=week_schedule.id,
+                    weekday=day,
+                    employee_id=employee_new.id,
+                    working_hours_id=day_off.id,
+                )
+                session.add(week_schedule_line)
+        session.commit()
     return
 
 
@@ -73,25 +97,25 @@ def add_working_hours(start_hour, end_hour, radio_var):
         if session.query(db.WorkingHours).filter(db.WorkingHours.is_on_vacation == 1).first():
             return
         new_working_hours.is_on_vacation = True
-        new_working_hours.start_hour = '0:00'
-        new_working_hours.end_hour = '8:00'
+        new_working_hours.start_hour = '24:00'
+        new_working_hours.end_hour = '24:00'
         new_working_hours.working_hours = 8
 
     if radio_var == 2:
         if session.query(db.WorkingHours).filter(db.WorkingHours.is_sick == 1).first():
             return
         new_working_hours.is_sick = True
-        new_working_hours.start_hour = '0:00'
-        new_working_hours.end_hour = '8:00'
+        new_working_hours.start_hour = '24:00'
+        new_working_hours.end_hour = '24:00'
         new_working_hours.working_hours = 8
 
-    if radio_var == 3:
-        if session.query(db.WorkingHours).filter(db.WorkingHours.is_resting == 1).first():
-            return
-        new_working_hours.is_resting = True
-        new_working_hours.start_hour = '0:00'
-        new_working_hours.end_hour = '0:00'
-        new_working_hours.working_hours = 0
+    # if radio_var == 3:
+    #     if session.query(db.WorkingHours).filter(db.WorkingHours.is_resting == 1).first():
+    #         return
+    #     new_working_hours.is_resting = True
+    #     new_working_hours.start_hour = '24:00'
+    #     new_working_hours.end_hour = '24:00'
+    #     new_working_hours.working_hours = 0
 
     if session.query(db.WorkingHours).filter(
             db.WorkingHours.start_hour == db_start_hour,
@@ -139,13 +163,18 @@ def remove_working_hours(start_hour, end_hour, radio_var):
                                    .first())
 
     if radio_var == 3:
-        working_hours_to_delete = (session
-                                   .query(db.WorkingHours)
-                                   .filter(db.WorkingHours.is_resting == 1,)
-                                   .first())
+        # working_hours_to_delete = (session
+        #                            .query(db.WorkingHours)
+        #                            .filter(db.WorkingHours.is_resting == 1,)
+        #                            .first())
+        return
 
     if working_hours_to_delete is not None:
         session.delete(working_hours_to_delete)
+        all_lines_without_workhours = session.query(db.WeekSchedule).filter(db.WeekSchedule.working_hours_id == None)
+        if all_lines_without_workhours:
+            for line in all_lines_without_workhours:
+                line.working_hours_id = 1
         session.commit()
 
     return
@@ -196,19 +225,21 @@ def get_work_hours():
 
 
 def add_week_schedule(add_remove_week_schedule_entry):
-    WEEK_DAYS = [
-        'Понеделник',
-        'Вторник',
-        'Сряда',
-        'Четвъртък',
-        'Петък',
-        'Събота',
-        'Неделя',
-    ]
+    # WEEK_DAYS = [
+    #     'Понеделник',
+    #     'Вторник',
+    #     'Сряда',
+    #     'Четвъртък',
+    #     'Петък',
+    #     'Събота',
+    #     'Неделя',
+    # ]
 
     schedule_name = add_remove_week_schedule_entry.get()
     if schedule_name == '':
         # print('1')  # for debug
+        return
+    if session.query(db.WeekScheduleName).filter(db.WeekScheduleName.name == schedule_name).first():
         return
 
     employees = get_employees()
@@ -225,124 +256,15 @@ def add_week_schedule(add_remove_week_schedule_entry):
                 week_schedule_line = db.WeekSchedule(
                     week=schedule.id,
                     weekday=day,
-                    employee=employee.id,
-                    working_hours=day_off.id,
+                    employee_id=employee.id,
+                    working_hours_id=day_off.id,
                 )
                 session.add(week_schedule_line)
 
     session.add(line)
-
-
     session.commit()
 
     return
-
-    # week_day = drop_down_var.get()
-    # if week_day == 'Избери':
-    #     # print('2')  # for debug
-    #     return
-    #
-    # employees_list = [employee.cget('text') for employee in employees]
-    # work_hours = [option.get() for option in option_menus]
-    #
-    # if 'Избери' in work_hours:
-    #     # print('3')  # for debug
-    #     return
-    #
-    #
-    # for i in range(len(employees_list)):
-    #
-    #     empl = (session
-    #             .query(db.Employee)
-    #             .filter(db.Employee.name == employees_list[i])
-    #             .first())
-    #
-    #     if not (session
-    #             .query(db.WeekSchedule)
-    #             .filter(
-    #         db.WeekSchedule.week == schedule_name,
-    #         db.WeekSchedule.weekday == week_day,
-    #         db.WeekSchedule.employee == empl.id)
-    #             .first()):
-    #
-    #         try:
-    #             start_hour, end_hour = work_hours[i].split(' - ')
-    #             # print(start_hour, end_hour)  # for debug
-    #             work_hour = (session
-    #                          .query(db.WorkingHours)
-    #                          .filter(
-    #                 db.WorkingHours.start_hour == start_hour,
-    #                 db.WorkingHours.end_hour == end_hour)
-    #                          .first())
-    #
-    #             line = db.WeekSchedule(
-    #                 week=schedule_name,
-    #                 weekday=week_day,
-    #                 employee=empl.id,
-    #                 working_hours=work_hour.id,
-    #             )
-    #
-    #             # print(line.working_hours)  # for debug
-    #         except ValueError:
-    #
-    #             non_working_days = {
-    #                 'Болничен' : db.WorkingHours.is_sick == 1,
-    #                 'Отпуск' : db.WorkingHours.is_on_vacation == 1,
-    #                 'Почива' : db.WorkingHours.is_resting == 1,
-    #             }
-    #
-    #             work_hour = (session
-    #                          .query(db.WorkingHours)
-    #                          .filter(non_working_days[work_hours[i]])
-    #                          .first())
-    #
-    #             line = db.WeekSchedule(
-    #                 week=schedule_name,
-    #                 weekday=week_day,
-    #                 employee=empl.id,
-    #                 working_hours=work_hour.id
-    #             )
-    #             # print(line.working_hours) # for debug
-    #
-    #         session.add(line)
-    #         session.commit()
-    #
-    #     else:
-    #         line = (session
-    #                 .query(db.WeekSchedule)
-    #                 .filter(
-    #             db.WeekSchedule.week == schedule_name,
-    #             db.WeekSchedule.weekday == week_day,
-    #             db.WeekSchedule.employee == empl.id)
-    #                 .first())
-    #         try:
-    #             start_hour, end_hour = work_hours[i].split(' - ')
-    #             work_hour = (session
-    #                          .query(db.WorkingHours)
-    #                          .filter(
-    #                 db.WorkingHours.start_hour == start_hour,
-    #                 db.WorkingHours.end_hour == end_hour)
-    #                          .first())
-    #
-    #             line.working_hours=work_hour.id
-    #
-    #         except ValueError:
-    #
-    #             non_working_days = {
-    #                 'Болничен': db.WorkingHours.is_sick == 1,
-    #                 'Отпуск': db.WorkingHours.is_on_vacation == 1,
-    #                 'Почива': db.WorkingHours.is_resting == 1,
-    #             }
-    #
-    #             work_hour = (session
-    #                          .query(db.WorkingHours)
-    #                          .filter(non_working_days[work_hours[i]])
-    #                          .first())
-    #
-    #             line.working_hours=work_hour.id
-    #
-    #         session.commit()
-    # return
 
 
 def list_week_names():
@@ -387,7 +309,10 @@ def list_week_schedule_name():
                           .group_by(db.WeekSchedule.week)
                           .all())
 
-    week_schedules_names = [week.week for week in week_schedules]
+    week_schedules_names = []
+    for week_schedule in week_schedules:
+        week_name = session.query(db.WeekScheduleName).filter(db.WeekScheduleName.id == week_schedule.week).first()
+        week_schedules_names.append(week_name.name)
 
     return week_schedules_names
 
@@ -396,15 +321,15 @@ def check_week_schedule(week_schedule, weekday):
     schedule_to_return = []
     if week_schedule == 'Избери' or weekday == 'Избери':
         return
-
+    week_schedule_id = session.query(db.WeekScheduleName).filter(db.WeekScheduleName.name == week_schedule).first().id
     weekday_schedule_employees = (session
                                   .query(db.WeekSchedule)
-                                  .filter(db.WeekSchedule.weekday == weekday, db.WeekSchedule.week == week_schedule))
+                                  .filter(db.WeekSchedule.weekday == weekday, db.WeekSchedule.week == week_schedule_id))
 
     for employee_schedule in weekday_schedule_employees:
 
-        employee = session.query(db.Employee).filter(db.Employee.id == employee_schedule.employee).first()
-        work_hours = session.query(db.WorkingHours).filter(db.WorkingHours.id == employee_schedule.working_hours).first()
+        employee = session.query(db.Employee).filter(db.Employee.id == employee_schedule.employee_id).first()
+        work_hours = session.query(db.WorkingHours).filter(db.WorkingHours.id == employee_schedule.working_hours_id).first()
 
         if work_hours.is_on_vacation == 1 or work_hours.is_sick == 1 or work_hours.is_resting == 1:
             work_hours_to_print = (
@@ -423,45 +348,7 @@ def check_week_schedule(week_schedule, weekday):
 
 
 def update_week_schedule(week_schedule, weekday, employees, option_menus):
-    # employee_id = session.query(db.Employee).filter(db.Employee.name == employee).first().id
-    # weekday_schedule_employee = (session
-    #                              .query(db.WeekSchedule)
-    #                              .filter(db.WeekSchedule.week == week_schedule, db.WeekSchedule.weekday == weekday, db.WeekSchedule.employee == employee_id)
-    #                              .first()
-    #                              )
-    #
-    # if 'Избери' in working_hours:
-    #     # print('3')  # for debug
-    #     return
-    #
-    # try:
-    #     start_hour, end_hour = working_hours.split(' - ')
-    #     work_hour = (session
-    #                  .query(db.WorkingHours)
-    #                  .filter(
-    #         db.WorkingHours.start_hour == start_hour,
-    #         db.WorkingHours.end_hour == end_hour)
-    #                  .first())
-    #
-    #     weekday_schedule_employee.working_hours = work_hour.id
-    #
-    # except ValueError:
-    #
-    #     non_working_days = {
-    #         'Болничен': db.WorkingHours.is_sick == 1,
-    #         'Отпуск': db.WorkingHours.is_on_vacation == 1,
-    #         'Почива': db.WorkingHours.is_resting == 1,
-    #     }
-    #
-    #     work_hour = (session
-    #                  .query(db.WorkingHours)
-    #                  .filter(non_working_days[working_hours])
-    #                  .first())
-    #
-    #     weekday_schedule_employee.working_hours = work_hour.id
-    #
-    # session.commit()
-    schedule_name = week_schedule
+    schedule_name = session.query(db.WeekScheduleName).filter(db.WeekScheduleName.name == week_schedule).first().id
     week_day = weekday
 
     if week_day == 'Избери':
@@ -470,11 +357,6 @@ def update_week_schedule(week_schedule, weekday, employees, option_menus):
 
     employees_list = [employee.cget('text') for employee in employees]
     work_hours = [option.get() for option in option_menus]
-
-    # if 'Избери' in work_hours:
-    #     # print('3')  # for debug
-    #     return
-
 
     for i in range(len(employees_list)):
 
@@ -492,7 +374,7 @@ def update_week_schedule(week_schedule, weekday, employees, option_menus):
                 .filter(
             db.WeekSchedule.week == schedule_name,
             db.WeekSchedule.weekday == week_day,
-            db.WeekSchedule.employee == empl.id)
+            db.WeekSchedule.employee_id == empl.id)
                 .first()):
 
             try:
@@ -509,7 +391,7 @@ def update_week_schedule(week_schedule, weekday, employees, option_menus):
                     week=schedule_name,
                     weekday=week_day,
                     employee=empl.id,
-                    working_hours=work_hour.id,
+                    working_hours_id=work_hour.id,
                 )
 
                 # print(line.working_hours)  # for debug
@@ -530,7 +412,7 @@ def update_week_schedule(week_schedule, weekday, employees, option_menus):
                     week=schedule_name,
                     weekday=week_day,
                     employee=empl.id,
-                    working_hours=work_hour.id
+                    working_hours_id=work_hour.id
                 )
                 # print(line.working_hours) # for debug
 
@@ -543,7 +425,7 @@ def update_week_schedule(week_schedule, weekday, employees, option_menus):
                     .filter(
                 db.WeekSchedule.week == schedule_name,
                 db.WeekSchedule.weekday == week_day,
-                db.WeekSchedule.employee == empl.id)
+                db.WeekSchedule.employee_id == empl.id)
                     .first())
             try:
                 start_hour, end_hour = work_hours[i].split(' - ')
@@ -554,7 +436,7 @@ def update_week_schedule(week_schedule, weekday, employees, option_menus):
                     db.WorkingHours.end_hour == end_hour)
                              .first())
 
-                line.working_hours=work_hour.id
+                line.working_hours_id=work_hour.id
 
             except ValueError:
 
@@ -569,7 +451,7 @@ def update_week_schedule(week_schedule, weekday, employees, option_menus):
                              .filter(non_working_days[work_hours[i]])
                              .first())
 
-                line.working_hours=work_hour.id
+                line.working_hours_id=work_hour.id
 
         session.commit()
     return
@@ -577,6 +459,10 @@ def update_week_schedule(week_schedule, weekday, employees, option_menus):
 
 
 def add_month(month, year):
+
+    if month == 'Избери' or year == 'Избери':
+        return
+
     months = {
         'Януари': 1,
         'Февруари': 2,
@@ -596,12 +482,15 @@ def add_month(month, year):
 
 
 def get_working_hours_by_day_and_week_schedule(day, week_schedule):
+    if week_schedule == 'Избери' or week_schedule == '':
+        return
     all_working_hours = []
-    working_hours = session.query(db.WeekSchedule).filter(db.WeekSchedule.week == week_schedule, db.WeekSchedule.weekday == day).all()
+    week_schedule_id = session.query(db.WeekScheduleName).filter(db.WeekScheduleName.name == week_schedule).first().id
+    working_hours = session.query(db.WeekSchedule).filter(db.WeekSchedule.week == week_schedule_id, db.WeekSchedule.weekday == day).all()
 
     for work_hour in working_hours:
-        employee = session.query(db.Employee).filter(db.Employee.id == work_hour.employee).first()
-        work_hours = session.query(db.WorkingHours).filter(db.WorkingHours.id == work_hour.working_hours).first()
+        employee = session.query(db.Employee).filter(db.Employee.id == work_hour.employee_id).first()
+        work_hours = session.query(db.WorkingHours).filter(db.WorkingHours.id == work_hour.working_hours_id).first()
         if work_hours.is_on_vacation == 1 or work_hours.is_sick == 1 or work_hours.is_resting == 1:
             all_working_hours.append((employee.name,
                 f'{"Отпуск" if work_hours.is_on_vacation == 1 else ""}'
