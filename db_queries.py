@@ -225,15 +225,6 @@ def get_work_hours():
 
 
 def add_week_schedule(add_remove_week_schedule_entry):
-    # WEEK_DAYS = [
-    #     'Понеделник',
-    #     'Вторник',
-    #     'Сряда',
-    #     'Четвъртък',
-    #     'Петък',
-    #     'Събота',
-    #     'Неделя',
-    # ]
 
     schedule_name = add_remove_week_schedule_entry.get()
     if schedule_name == '':
