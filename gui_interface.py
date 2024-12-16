@@ -264,16 +264,16 @@ class App:
         remove_btn.grid(row=1, column=3, sticky="WE", padx=15)
 
         sc = Scrollbar(window, orient='vertical')
-        sc.grid(row=3, column=0, sticky='nse', columnspan=3, rowspan=2)
+        sc.grid(row=3, column=0, sticky='nse', columnspan=4, rowspan=2)
 
-        work_hours_list_text = Text(window, font=('Arial', 18), width=1, height=10, yscrollcommand=sc.set)
+        work_hours_list_text = Text(window, font=('Arial', 18), width=30, height=10, yscrollcommand=sc.set)
         work_hours_list_text.insert('1.0', str(list_working_hours()))
 
         sc.config(command=work_hours_list_text.yview)
-        work_hours_list_text.grid(row=3, column=0, padx=15, columnspan=3, rowspan=2, sticky="EWNS")
+        work_hours_list_text.grid(row=3, column=0, padx=15, columnspan=4, rowspan=2, sticky="EWNS")
 
         main_page_btn = Button(window, text="Назад", command=self.main_page, font=('Arial', 18))
-        main_page_btn.grid(row=4, column=3, sticky="EWS", padx=15)
+        main_page_btn.grid(row=5, column=3, sticky="EWS", padx=15, pady=15)
 
     def add_remove_week_schedule(self):
 
@@ -320,16 +320,16 @@ class App:
         remove_btn.grid(row=1, column=3, sticky="WE", padx=15, pady=10)
 
         sc = Scrollbar(window, orient='vertical')
-        sc.grid(row=3, column=0, sticky='nse', pady=15, columnspan=3, rowspan=2)
+        sc.grid(row=3, column=0, sticky='nse', pady=15, columnspan=4, rowspan=2)
 
         week_schedule_list_text = Text(window, font=('Arial', 18), width=1, height=10, yscrollcommand=sc.set)
         week_schedule_list_text.insert('1.0', str('\n'.join(list_week_names())))
 
         sc.config(command=week_schedule_list_text.yview)
-        week_schedule_list_text.grid(row=3, column=0, pady=15, padx=15 , columnspan=3, rowspan=2, sticky="EWNS")
+        week_schedule_list_text.grid(row=3, column=0, pady=15, padx=15 , columnspan=4, rowspan=2, sticky="EWNS")
 
         main_page_btn = Button(window, text="Назад", command=self.main_page, font=('Arial', 18))
-        main_page_btn.grid(row=4, column=3, sticky="EWS", padx=15, pady=15)
+        main_page_btn.grid(row=5, column=3, sticky="EWS", padx=15, pady=15)
 
     def check_edit_week_schedule(self):
 
@@ -349,8 +349,6 @@ class App:
         week_names = list_week_schedule_name()
         if week_names:
             employees = [employee.name for employee in get_employees()]
-            # working_hours = get_work_hours()
-
 
             drop_down_schedule_name = StringVar(window)
             drop_down_schedule_name.set('Избери')

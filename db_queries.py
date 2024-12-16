@@ -1,6 +1,6 @@
 import db_setup as db
 from sqlalchemy.orm import sessionmaker
-from datetime import datetime
+from datetime import datetime, timedelta
 from calendar_fumction import days
 
 Session = sessionmaker(bind = db.engine)
@@ -84,7 +84,14 @@ def add_working_hours(start_hour, end_hour, radio_var):
     start_hour_obj = datetime.strptime(db_start_hour, '%H:%M')
     end_hour_obj = datetime.strptime(db_end_hour, '%H:%M')
 
-    working_hours = end_hour_obj - start_hour_obj
+    if start_hour_obj < end_hour_obj:
+        working_hours = (end_hour_obj - start_hour_obj)
+    else:
+        midnight = datetime.combine(start_hour_obj.date(), datetime.min.time()) + timedelta(days=1)
+        hours_until_midnight = (midnight - start_hour_obj)
+        hours_after_midnight = (end_hour_obj - datetime.combine(end_hour_obj.date(), datetime.min.time()))
+        working_hours = hours_until_midnight + hours_after_midnight
+
     db_working_hours =  working_hours.total_seconds() / 3600
 
     new_working_hours = db.WorkingHours(
@@ -108,14 +115,6 @@ def add_working_hours(start_hour, end_hour, radio_var):
         new_working_hours.start_hour = '24:00'
         new_working_hours.end_hour = '24:00'
         new_working_hours.working_hours = 8
-
-    # if radio_var == 3:
-    #     if session.query(db.WorkingHours).filter(db.WorkingHours.is_resting == 1).first():
-    #         return
-    #     new_working_hours.is_resting = True
-    #     new_working_hours.start_hour = '24:00'
-    #     new_working_hours.end_hour = '24:00'
-    #     new_working_hours.working_hours = 0
 
     if session.query(db.WorkingHours).filter(
             db.WorkingHours.start_hour == db_start_hour,
